@@ -17,6 +17,23 @@ module.exports = {
       colour: "Cool daylight",
       img_url: "https://i.ibb.co/2nzwxnQ/bulb.png",
     },
+    {
+      id: 2,
+      name: "Smart LED Strip Light",
+      power: "14.4W",
+      description:
+        "RGB color changing LED strip light with remote control, perfect for ambient lighting. Features multiple color modes, brightness adjustment, and can be cut to custom lengths.",
+      price: 2499,
+      quantity: 8,
+      brand: "LIFX",
+      weight: 120,
+      height: 0.5,
+      width: 1.0,
+      length: 500,
+      model_code: "LS-500",
+      colour: "Multicolor",
+      img_url: "https://m.media-amazon.com/images/I/61in2Vj-zKL.jpg",
+    },
   ],
 };
 

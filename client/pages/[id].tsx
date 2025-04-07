@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/router';
 import { gql, useQuery } from '@apollo/client';
 import styles from '../styles/Product.module.css';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import { useCart } from '../context/CartContext';
+import { Product, ProductData } from '../types';
 
 export const GET_PRODUCT = gql`
   query GetProduct($id: ID!) {
@@ -24,33 +29,16 @@ export const GET_PRODUCT = gql`
   }
 `;
 
-interface Product {
-  id: number;
-  name: string;
-  power: string;
-  description: string;
-  price: number;
-  quantity: number;
-  brand: string;
-  weight: number;
-  height: number;
-  width: number;
-  length: number;
-  model_code: string;
-  colour: string;
-  img_url: string;
-}
-
-interface ProductData {
-  Product: Product;
-}
-
-export default function Product() {
+export default function ProductDetail() {
+  const router = useRouter();
+  const { id } = router.query;
   const [quantity, setQuantity] = useState(1);
-  const [basketItems, setBasketItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { addToCart } = useCart();
+  
   const { loading, error, data } = useQuery<ProductData>(GET_PRODUCT, {
-    variables: { id: "1" }
+    variables: { id },
+    skip: !id, // Skip the query until we have an ID
   });
 
   const increaseQuantity = () => {
@@ -61,10 +49,18 @@ export default function Product() {
     setQuantity(prev => Math.max(1, prev - 1));
   };
 
-  const addToCart = async () => {
+  const handleAddToCart = async () => {
+    if (!data?.Product) return;
+    
     setIsLoading(true);
     try {
-      setBasketItems(prev => prev + quantity);
+      addToCart({
+        id: data.Product.id,
+        name: data.Product.name,
+        price: data.Product.price,
+        img_url: data.Product.img_url
+      }, quantity);
+      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 300));
     } finally {
@@ -74,23 +70,29 @@ export default function Product() {
 
   if (loading) return (
     <div className={styles.container}>
+      <Header />
       <div style={{ padding: '2rem', color: 'white' }}>Loading product data...</div>
+      <Footer />
     </div>
   );
   
   if (error) return (
     <div className={styles.container}>
+      <Header />
       <div style={{ padding: '2rem', color: 'white' }}>
         Error loading product: {error.message}
       </div>
+      <Footer />
     </div>
   );
 
   if (!data?.Product) return (
     <div className={styles.container}>
+      <Header />
       <div style={{ padding: '2rem', color: 'white' }}>
-        No product data available. Data received: {JSON.stringify(data)}
+        Product not found. Please check the URL and try again.
       </div>
+      <Footer />
     </div>
   );
 
@@ -100,15 +102,7 @@ export default function Product() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          <Image src="/octopus-logo.svg" alt="Octopus Energy" width={40} height={40} />
-        </div>
-        <div className={styles.basket} title="Basket items">
-          <Image src="/basket.svg" alt="Basket" width={24} height={24} />
-          <span>{basketItems}</span>
-        </div>
-      </header>
+      <Header />
 
       <main className={styles.main}>
         <div className={styles.productImage}>
@@ -160,7 +154,7 @@ export default function Product() {
           </div>
 
           <button 
-            onClick={addToCart} 
+            onClick={handleAddToCart} 
             className={styles.addToCart}
             disabled={isLoading}
             aria-label="Add to cart"
@@ -203,14 +197,7 @@ export default function Product() {
         </div>
       </main>
 
-      <footer className={styles.footer}>
-        <p>
-          Octopus Energy Ltd is a company registered in England and Wales.
-          Registered number: 09263424. Registered office: 33 Holborn,
-          London, EC1N 2HT. Trading office: 20-24 Broadwick Street, London,
-          W1F 8HT
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
-}
+} 

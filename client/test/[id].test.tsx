@@ -4,7 +4,9 @@ import '@testing-library/jest-dom';
 import { MockedProvider } from '@apollo/client/testing';
 import { act } from 'react';
 import { axe, toHaveNoViolations } from 'jest-axe';
-import Product, { GET_PRODUCT } from "../pages/product";
+import ProductDetail, { GET_PRODUCT } from "../pages/[id]";
+import { CartProvider } from '../context/CartContext';
+import { useRouter } from 'next/router';
 
 expect.extend(toHaveNoViolations);
 
@@ -49,13 +51,36 @@ const errorMock = [
   }
 ];
 
-describe("Product Component", () => {
+// Mock the router
+jest.mock('next/router', () => ({
+  useRouter: jest.fn()
+}));
+
+const mockRouter = {
+  push: jest.fn(),
+  query: { id: '1' }
+};
+
+(useRouter as jest.Mock).mockReturnValue(mockRouter);
+
+// Wrapper component to provide CartContext
+const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <MockedProvider mocks={successMock} addTypename={false}>
+      <CartProvider>
+        {children}
+      </CartProvider>
+    </MockedProvider>
+  );
+};
+
+describe("Product Detail Component", () => {
   describe("Loading and Error States", () => {
     test("should show loading state", async () => {
       const { getByText } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
       
       expect(getByText("Loading product data...")).toBeInTheDocument();
@@ -64,7 +89,9 @@ describe("Product Component", () => {
     test("should show error state", async () => {
       const { getByText } = render(
         <MockedProvider mocks={errorMock} addTypename={false}>
-          <Product />
+          <CartProvider>
+            <ProductDetail />
+          </CartProvider>
         </MockedProvider>
       );
 
@@ -77,9 +104,9 @@ describe("Product Component", () => {
   describe("Product Display", () => {
     test("should display correct product information", async () => {
       const { getByText, getByRole } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -95,14 +122,24 @@ describe("Product Component", () => {
       expect(table).toBeInTheDocument();
       expect(getByText(`${productData.height} x ${productData.width} x ${productData.length}`)).toBeInTheDocument();
     });
+
+    test("should display product image", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
+      await waitFor(() => {
+        const image = screen.getByAltText(productData.name);
+        expect(image).toBeInTheDocument();
+        expect(image).toHaveAttribute('alt', productData.name);
+      });
+    });
   });
 
   describe("Quantity Controls", () => {
     test("should disable decrease button at minimum quantity", async () => {
       const { getByText } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -115,9 +152,9 @@ describe("Product Component", () => {
 
     test("should disable increase button at maximum quantity", async () => {
       const { getByText, getByTitle } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -137,14 +174,56 @@ describe("Product Component", () => {
       expect(increaseButton).toBeDisabled();
       expect(currentQuantity).toHaveTextContent("99");
     });
+
+    test("should start with quantity 1", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
+      await waitFor(() => {
+        expect(screen.getByTitle('Current quantity')).toHaveTextContent('1');
+      });
+    });
+
+    test("should increase quantity when clicking plus button", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
+      await waitFor(() => {
+        const plusButton = screen.getByRole('button', { name: /increase/i });
+        fireEvent.click(plusButton);
+        expect(screen.getByTitle('Current quantity')).toHaveTextContent('2');
+      });
+    });
+
+    test("should decrease quantity when clicking minus button", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
+      await waitFor(() => {
+        const plusButton = screen.getByRole('button', { name: /increase/i });
+        const minusButton = screen.getByRole('button', { name: /decrease/i });
+        
+        fireEvent.click(plusButton);
+        fireEvent.click(minusButton);
+        
+        expect(screen.getByTitle('Current quantity')).toHaveTextContent('1');
+      });
+    });
+
+    test("should not decrease quantity below 1", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
+      await waitFor(() => {
+        const minusButton = screen.getByRole('button', { name: /decrease/i });
+        fireEvent.click(minusButton);
+        expect(screen.getByTitle('Current quantity')).toHaveTextContent('1');
+      });
+    });
   });
 
   describe("Add to Cart Functionality", () => {
     test("should show loading state while adding to cart", async () => {
       const { getByRole } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -169,73 +248,44 @@ describe("Product Component", () => {
       });
     });
 
-    test("should accumulate basket items correctly", async () => {
-      const { getByRole, getByTitle } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
-      );
+    test("should add product to cart when clicking add to cart button", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
 
       await waitFor(() => {
-        expect(getByRole('button', { name: 'Add to cart' })).toBeInTheDocument();
-      });
-
-      // Add 2 items first time
-      await act(async () => {
-        fireEvent.click(getByRole('button', { name: 'Increase quantity' }));
-      });
-
-      const addToCartButton = getByRole('button', { name: 'Add to cart' });
-      await act(async () => {
+        const addToCartButton = screen.getByRole('button', { name: /add to cart/i });
         fireEvent.click(addToCartButton);
+        
+        // Check that cart icon shows updated count
+        const cartIcon = screen.getByTitle('View cart');
+        expect(cartIcon).toBeInTheDocument();
+        expect(screen.getByText('1')).toBeInTheDocument();
       });
+    });
 
-      // Wait for loading state to complete
+    test("should add correct quantity to cart", async () => {
+      render(<ProductDetail />, { wrapper: AllTheProviders });
+
       await waitFor(() => {
-        expect(addToCartButton).not.toBeDisabled();
-      });
-
-      // Wait for the first basket update
-      await waitFor(() => {
-        expect(getByTitle("Basket items")).toHaveTextContent("2");
-      });
-
-      // Add 3 more items
-      await act(async () => {
-        fireEvent.click(getByRole('button', { name: 'Increase quantity' }));
-      });
-
-      await act(async () => {
-        fireEvent.click(getByRole('button', { name: 'Increase quantity' }));
-      });
-
-      // Wait for quantity to update
-      await waitFor(() => {
-        expect(getByTitle("Current quantity")).toHaveTextContent("4");
-      });
-
-      await act(async () => {
+        const plusButton = screen.getByRole('button', { name: /increase/i });
+        const addToCartButton = screen.getByRole('button', { name: /add to cart/i });
+        
+        fireEvent.click(plusButton);
         fireEvent.click(addToCartButton);
+        
+        // Check that cart icon shows updated count
+        const cartIcon = screen.getByTitle('View cart');
+        expect(cartIcon).toBeInTheDocument();
+        expect(screen.getByText('2')).toBeInTheDocument();
       });
-
-      // Wait for loading state to complete
-      await waitFor(() => {
-        expect(addToCartButton).not.toBeDisabled();
-      });
-
-      // Wait for the second basket update with increased timeout
-      await waitFor(() => {
-        expect(getByTitle("Basket items")).toHaveTextContent("6");
-      }, { timeout: 2000 });
     });
   });
 
   describe("Accessibility", () => {
     test("should have no accessibility violations", async () => {
       const { container } = render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       // Wait for content to load
@@ -249,9 +299,9 @@ describe("Product Component", () => {
 
     test("should have proper heading hierarchy", async () => {
       render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -267,9 +317,9 @@ describe("Product Component", () => {
 
     test("should have proper button labels and ARIA attributes", async () => {
       render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -285,27 +335,25 @@ describe("Product Component", () => {
 
     test("should have proper image alt text", async () => {
       render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
         const logo = screen.getByRole('img', { name: 'Octopus Energy' });
-        const basketIcon = screen.getByRole('img', { name: 'Basket' });
         const productImage = screen.getByRole('img', { name: productData.name });
 
         expect(logo).toBeInTheDocument();
-        expect(basketIcon).toBeInTheDocument();
         expect(productImage).toBeInTheDocument();
       });
     });
 
     test("should have accessible table structure", async () => {
       render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -322,9 +370,9 @@ describe("Product Component", () => {
 
     test("should maintain focus management during interactions", async () => {
       render(
-        <MockedProvider mocks={successMock} addTypename={false}>
-          <Product />
-        </MockedProvider>
+        <AllTheProviders>
+          <ProductDetail />
+        </AllTheProviders>
       );
 
       await waitFor(() => {
@@ -351,4 +399,4 @@ describe("Product Component", () => {
       expect(document.activeElement).toBe(addToCartButton);
     });
   });
-});
+}); 

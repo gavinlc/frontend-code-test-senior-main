@@ -7,6 +7,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'i.ibb.co',
         
+      },
+      {
+        protocol: 'https',
+        hostname: 'm.media-amazon.com',
+        
       }
     ],
   }

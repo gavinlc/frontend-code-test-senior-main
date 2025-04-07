@@ -1,0 +1,138 @@
+.cartPreviewContainer {
+  position: relative;
+}
+
+.basket {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.basketCount {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: var(--sohoLights);
+  color: var(--siphon);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.preview {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 300px;
+  background-color: var(--hemocyanin);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 16px;
+  z-index: 1000;
+  margin-top: 10px;
+}
+
+.preview h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: var(--ice);
+  font-size: 18px;
+  border-bottom: 1px solid var(--purpleHaze);
+  padding-bottom: 8px;
+}
+
+.emptyCart {
+  color: var(--purpleHaze);
+  text-align: center;
+  padding: 20px 0;
+}
+
+.cartItems {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+}
+
+.cartItem {
+  display: flex;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(164, 159, 200, 0.2);
+}
+
+.cartItem:last-child {
+  border-bottom: none;
+}
+
+.itemImage {
+  width: 50px;
+  height: 50px;
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.itemDetails {
+  flex: 1;
+}
+
+.itemDetails h4 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--ice);
+}
+
+.itemDetails p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--purpleHaze);
+}
+
+.itemPrice {
+  font-weight: bold;
+  color: var(--sohoLights) !important;
+  margin-top: 4px !important;
+}
+
+.cartSummary {
+  border-top: 1px solid var(--purpleHaze);
+  padding-top: 12px;
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: bold;
+  color: var(--ice);
+}
+
+.totalPrice {
+  color: var(--sohoLights);
+}
+
+.viewCartButton {
+  display: block;
+  width: 100%;
+  padding: 8px 0;
+  background-color: var(--sohoLights);
+  color: var(--siphon);
+  text-align: center;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.viewCartButton:hover {
+  background-color: #d83fd8;
+} 
