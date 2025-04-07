@@ -1,4 +1,6 @@
-import { render, fireEvent } from "@testing-library/react";
+import { render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/dom';
+import '@testing-library/jest-dom';
 import Product from "../pages/product";
 
 test("should be able to increase and decrease product quantity", async () => {
