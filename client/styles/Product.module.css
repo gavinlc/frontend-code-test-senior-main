@@ -88,7 +88,7 @@
 
 .subtitle {
   color: var(--purpleHaze);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .priceControlsContainer {
@@ -188,6 +188,7 @@
   margin-left: -1rem;
   margin-right: -1rem;
   background-color: var(--hemocyanin);
+  color: var(--ice);
   padding: 1rem;
   border-radius: 0;
 }
@@ -195,11 +196,10 @@
 .description h2 {
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  color: var(--ice);
+  
 }
 
 .description p {
-  color: var(--purpleHaze);
   line-height: 1.6;
 }
 
@@ -216,9 +216,14 @@
   width: 100%;
 }
 
+.specifications th {
+  font-weight: normal;
+  text-align: left;
+}
+
 .specifications td {
   padding: 0.5rem 0;
-  color: var(--purpleHaze);
+  color: var(--ice);
 }
 
 .specifications td:first-child {

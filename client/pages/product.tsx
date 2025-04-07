@@ -1,11 +1,57 @@
 import { useState } from 'react';
 import Image from 'next/image';
+import { gql, useQuery } from '@apollo/client';
 import styles from '../styles/Product.module.css';
+
+export const GET_PRODUCT = gql`
+  query GetProduct($id: ID!) {
+    Product(id: $id) {
+      id
+      name
+      power
+      description
+      price
+      quantity
+      brand
+      weight
+      height
+      width
+      length
+      model_code
+      colour
+      img_url
+    }
+  }
+`;
+
+interface Product {
+  id: number;
+  name: string;
+  power: string;
+  description: string;
+  price: number;
+  quantity: number;
+  brand: string;
+  weight: number;
+  height: number;
+  width: number;
+  length: number;
+  model_code: string;
+  colour: string;
+  img_url: string;
+}
+
+interface ProductData {
+  Product: Product;
+}
 
 export default function Product() {
   const [quantity, setQuantity] = useState(1);
   const [basketItems, setBasketItems] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const { loading, error, data } = useQuery<ProductData>(GET_PRODUCT, {
+    variables: { id: "1" }
+  });
 
   const increaseQuantity = () => {
     setQuantity(prev => prev + 1);
@@ -26,6 +72,32 @@ export default function Product() {
     }
   };
 
+  if (loading) return (
+    <div className={styles.container}>
+      <div style={{ padding: '2rem', color: 'white' }}>Loading product data...</div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className={styles.container}>
+      <div style={{ padding: '2rem', color: 'white' }}>
+        Error loading product: {error.message}
+      </div>
+    </div>
+  );
+
+  if (!data?.Product) return (
+    <div className={styles.container}>
+      <div style={{ padding: '2rem', color: 'white' }}>
+        No product data available. Data received: {JSON.stringify(data)}
+      </div>
+    </div>
+  );
+
+  const product = data.Product;
+  const formattedPrice = (product.price / 100).toFixed(2);
+  const dimensions = `${product.height} x ${product.width} x ${product.length}`;
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -41,27 +113,48 @@ export default function Product() {
       <main className={styles.main}>
         <div className={styles.productImage}>
           <Image 
-            src="/philips-plumen.jpg" 
-            alt="Energy saving light bulb"
+            src={product.img_url || '/philips-plumen.jpg'} 
+            alt={product.name}
             width={500}
             height={500}
             style={{ objectFit: 'contain' }}
             priority
+            onError={(e) => {
+              // Fallback to local image if external image fails
+              const imgElement = e.target as HTMLImageElement;
+              if (imgElement.src !== '/philips-plumen.jpg') {
+                imgElement.src = '/philips-plumen.jpg';
+              }
+            }}
           />
         </div>
 
         <div className={styles.productInfo}>
-          <h1>Energy saving light bulb</h1>
-          <p className={styles.subtitle}>25W // Packet of 4</p>
+          <h1>{product.name}</h1>
+          <p className={styles.subtitle}>{`${product.power} // Packet of ${product.quantity}`}</p>
           
           <div className={styles.priceControlsContainer}>
-            <div className={styles.price}>£12.99</div>
+            <div className={styles.price}>£{formattedPrice}</div>
             <div className={styles.controls}>
               <div className={styles.qtyLabel}>Qty</div>
               <div className={styles.controlsRow}>
-                <button onClick={decreaseQuantity} className={styles.quantityButton} disabled={quantity === 1}>-</button>
+                <button 
+                  onClick={decreaseQuantity} 
+                  className={styles.quantityButton} 
+                  disabled={quantity === 1}
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
                 <span title="Current quantity" className={styles.quantity}>{quantity}</span>
-                <button onClick={increaseQuantity} className={styles.quantityButton} disabled={quantity === 99}>+</button>
+                <button 
+                  onClick={increaseQuantity} 
+                  className={styles.quantityButton} 
+                  disabled={quantity === 99}
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
               </div>
             </div>
           </div>
@@ -70,16 +163,14 @@ export default function Product() {
             onClick={addToCart} 
             className={styles.addToCart}
             disabled={isLoading}
+            aria-label="Add to cart"
           >
             {isLoading ? 'Adding...' : 'Add to cart'}
           </button>
 
           <div className={styles.description}>
             <h2>Description</h2>
-            <p>
-              Available in 7 watts, 9 watts, 11 watts Spiral Light bulb in B22, bulb switches on instantly,
-              no wait around warm start and flicker free features make for a great all purpose bulb
-            </p>
+            <p>{product.description}</p>
           </div>
 
           <div className={styles.specifications}>
@@ -87,24 +178,24 @@ export default function Product() {
             <table>
               <tbody>
                 <tr>
-                  <td>Brand</td>
-                  <td>Phillips</td>
+                  <th scope="row">Brand</th>
+                  <td>{product.brand}</td>
                 </tr>
                 <tr>
-                  <td>Item weight (g)</td>
-                  <td>77</td>
+                  <th scope="row">Item weight (g)</th>
+                  <td>{product.weight}</td>
                 </tr>
                 <tr>
-                  <td>Dimensions (cm)</td>
-                  <td>12.6 x 6.2 x 6.2</td>
+                  <th scope="row">Dimensions (cm)</th>
+                  <td>{dimensions}</td>
                 </tr>
                 <tr>
-                  <td>Item Model number</td>
-                  <td>E27 ES</td>
+                  <th scope="row">Item Model number</th>
+                  <td>{product.model_code}</td>
                 </tr>
                 <tr>
-                  <td>Colour</td>
-                  <td>Cool daylight</td>
+                  <th scope="row">Colour</th>
+                  <td>{product.colour}</td>
                 </tr>
               </tbody>
             </table>
