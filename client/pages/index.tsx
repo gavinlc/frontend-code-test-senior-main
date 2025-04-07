@@ -45,8 +45,8 @@ export default function Home() {
                     <Image
                       src={product.img_url || '/philips-plumen.jpg'}
                       alt={product.name}
-                      width={200}
-                      height={200}
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       style={{ objectFit: 'contain' }}
                     />
                   </div>

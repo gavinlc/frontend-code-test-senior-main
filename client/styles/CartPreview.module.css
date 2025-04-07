@@ -7,6 +7,11 @@
   align-items: center;
   cursor: pointer;
   position: relative;
+  transition: transform 0.2s ease;
+}
+
+.basket:active {
+  transform: scale(0.95);
 }
 
 .basketCount {
@@ -25,6 +30,7 @@
   font-weight: bold;
 }
 
+
 .preview {
   position: absolute;
   top: 100%;
@@ -36,6 +42,21 @@
   padding: 16px;
   z-index: 1000;
   margin-top: 10px;
+  transform-origin: top right;
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+}
+
+.open {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.closed {
+  opacity: 0;
+  transform: translateY(-10px);
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .preview h3 {

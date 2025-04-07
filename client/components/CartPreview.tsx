@@ -17,13 +17,17 @@ export default function CartPreview() {
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
-  const togglePreview = () => {
+  const togglePreview = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setIsOpen(!isOpen);
   };
 
@@ -42,7 +46,7 @@ export default function CartPreview() {
       </div>
 
       {isOpen && (
-        <div className={styles.preview}>
+        <div className={`${styles.preview} ${styles.open}`}>
           <h3>Your Cart</h3>
           
           {cartItems.length === 0 ? (
