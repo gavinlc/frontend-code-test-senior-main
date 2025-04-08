@@ -20,11 +20,29 @@ body {
   background: var(--siphon);
 }
 
-.home {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  margin: 0 auto;
+button {
+  background-color: var(--sohoLights);
+  color: var(--hemocyanin);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.2s, opacity 0.2s;
 }
+
+button:hover {
+  transform: translateY(-1px);
+  opacity: 0.95;
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:disabled {
+  background-color: var(--plum);
+  color: var(--ice);
+  cursor: not-allowed;
+  transform: none;
+}
+
+

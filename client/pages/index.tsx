@@ -4,7 +4,7 @@ import { gql, useQuery } from '@apollo/client';
 import styles from '../styles/Home.module.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import { Product, ProductsData } from '../types';
+import { ProductsData } from '../types';
 
 export const GET_PRODUCTS = gql`
   query GetProducts {

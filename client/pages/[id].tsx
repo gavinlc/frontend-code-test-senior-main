@@ -6,7 +6,7 @@ import styles from '../styles/Product.module.css';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useCart } from '../context/CartContext';
-import { Product, ProductData } from '../types';
+import { ProductData } from '../types';
 
 export const GET_PRODUCT = gql`
   query GetProduct($id: ID!) {

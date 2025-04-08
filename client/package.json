@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "concurrently --names \"server,next\" --prefix-colors \"blue.bold,green.bold\" \"yarn server\" \"next dev\"",
+    "dev": "concurrently --kill-others --success last --names \"server,next\" --prefix-colors \"blue.bold,green.bold\" \"yarn server\" \"next dev\"",
     "build": "next build",
     "start": "next start",
     "server": "yarn run json-graphql-server ../server/db.js -p 3001",
